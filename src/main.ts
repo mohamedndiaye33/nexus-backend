@@ -5,21 +5,27 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 1. Activation du CORS pour autoriser ton application React (ex: port 5173)
+  // ✅ CORS : autorise le frontend en local ET sur Vercel
   app.enableCors({
-    origin: 'http://localhost:5173', // L'URL de ton frontend React
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:4173',
+      // 🔁 Remplace cette URL par ton vrai domaine Vercel si tu déploies
+      'https://ton-frontend.vercel.app',
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
-  // 2. Activation globale de la validation automatique avec les DTOs (class-validator)
+  // ✅ Validation automatique des DTOs
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true, // Supprime automatiquement les propriétés non définies dans le DTO
-    forbidNonWhitelisted: true, // Renvoie une erreur si des propriétés non autorisées sont envoyées
-    transform: true, // Convertit automatiquement les types (ex: string vers number pour les IDs)
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
   }));
 
-  // Écoute sur le port fourni par l'environnement ou le 3000 par défaut
-  await app.listen(process.env.PORT ?? 3000);
+  // ✅ Port 5000 pour correspondre au proxy Vite du frontend
+  await app.listen(process.env.PORT ?? 5000);
+  console.log(`🚀 Backend démarré sur http://localhost:${process.env.PORT ?? 5000}`);
 }
 bootstrap();

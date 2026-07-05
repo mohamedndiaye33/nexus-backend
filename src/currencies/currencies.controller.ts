@@ -5,7 +5,7 @@ import { CurrenciesService } from './currencies.service';
 export class CurrenciesController {
   constructor(private readonly currenciesService: CurrenciesService) {}
 
-  // Exemple d'appel : GET /currencies/convert?amount=100&to=USD
+  // Convertit depuis EUR : GET /currencies/convert?amount=100&to=USD
   @Get('convert')
   async convert(
     @Query('amount', ParseFloatPipe) amount: number,
@@ -17,6 +17,18 @@ export class CurrenciesController {
       currencyFrom: 'EUR',
       currencyTo: to.toUpperCase(),
       convertedAmount: convertedPrice,
+    };
+  }
+
+  // ✅ Nouveau : récupère tous les taux depuis XOF (FCFA)
+  // Utilisé par le frontend pour convertir les prix FCFA → EUR / USD
+  // GET /currencies/rates
+  @Get('rates')
+  async getRates() {
+    const rates = await this.currenciesService.getRatesFromXOF();
+    return {
+      base: 'XOF',
+      rates,
     };
   }
 }

@@ -6,26 +6,50 @@ import { firstValueFrom } from 'rxjs';
 export class CurrenciesService {
   constructor(private readonly httpService: HttpService) {}
 
-  // Convertir un prix en EUR vers une autre devise (USD, XOF, etc.)
+  // Convertir un montant depuis EUR vers une autre devise
   async convertPrice(amount: number, targetCurrency: string): Promise<number> {
     try {
-      // Appel à une API de taux de change ouverte (ici basée sur l'Euro)
       const url = `https://open.er-api.com/v6/latest/EUR`;
       const response = await firstValueFrom(this.httpService.get(url));
-      
       const rates = response.data.rates;
       const rate = rates[targetCurrency.toUpperCase()];
 
       if (!rate) {
-        throw new HttpException(`Devise ${targetCurrency} non supportée.`, HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          `Devise ${targetCurrency} non supportée.`,
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
-      // Calcul du prix converti
-      const convertedAmount = amount * rate;
-      return parseFloat(convertedAmount.toFixed(2));
+      return parseFloat((amount * rate).toFixed(2));
     } catch (error) {
       throw new HttpException(
-        "Impossible de récupérer les taux de change pour le moment.",
+        'Impossible de récupérer les taux de change.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // ✅ Nouveau : récupère les taux de change depuis XOF (FCFA)
+  // Le XOF est fixé à l'EUR : 1 EUR = 655.957 XOF
+  // On calcule EUR/USD/GBP depuis XOF en passant par EUR
+  async getRatesFromXOF(): Promise<{ EUR: number; USD: number; GBP: number }> {
+    try {
+      const url = `https://open.er-api.com/v6/latest/EUR`;
+      const response = await firstValueFrom(this.httpService.get(url));
+      const rates = response.data.rates;
+
+      // Taux fixe XOF/EUR garanti par la Banque de France
+      const XOF_PER_EUR = 655.957;
+
+      return {
+        EUR: parseFloat((1 / XOF_PER_EUR).toFixed(8)),         // 1 FCFA en EUR
+        USD: parseFloat((rates['USD'] / XOF_PER_EUR).toFixed(8)), // 1 FCFA en USD
+        GBP: parseFloat((rates['GBP'] / XOF_PER_EUR).toFixed(8)), // 1 FCFA en GBP
+      };
+    } catch {
+      throw new HttpException(
+        'Impossible de récupérer les taux de change.',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

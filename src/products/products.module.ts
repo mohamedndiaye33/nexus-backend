@@ -3,10 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductsService } from './products.service';
 import { ProductsController } from './products.controller';
 import { Product } from './entities/product.entity';
+import { SeedService } from './seed.service'; // ✅ Nouveau
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product])], // <--- Injecter l'entité ici
+  imports: [TypeOrmModule.forFeature([Product])],
   controllers: [ProductsController],
-  providers: [ProductsService],
+  providers: [
+    ProductsService,
+    SeedService, // ✅ S'exécute au démarrage si la base est vide
+  ],
 })
 export class ProductsModule {}

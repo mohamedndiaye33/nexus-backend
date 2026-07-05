@@ -1,6 +1,11 @@
 import { IsEmail, IsNotEmpty, MinLength, IsOptional, IsString } from 'class-validator';
 
 export class CreateUserDto {
+  // ✅ Ajout du champ name (facultatif pour rester compatible)
+  @IsOptional()
+  @IsString()
+  name?: string;
+
   @IsEmail({}, { message: 'Veuillez fournir un email valide.' })
   email: string;
 

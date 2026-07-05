@@ -12,26 +12,24 @@ export class AuthService {
 
   async login(loginDto: any) {
     const { email, password } = loginDto;
-    
-    // 1. Rechercher l'utilisateur par son email
+
     const user = await this.usersService.findByEmail(email);
-    
-    // 2. Vérifier si l'utilisateur ET son mot de passe existent
+
     if (!user || !user.password) {
       throw new UnauthorizedException('Identifiants incorrects.');
     }
 
-    // 3. Vérifier si le mot de passe correspond (TypeScript sait maintenant que user.password existe !)
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Identifiants incorrects.');
     }
 
-    // 4. Créer le payload du JWT
     const payload = { sub: user.id, email: user.email, role: user.role };
 
     return {
-      access_token: this.jwtService.sign(payload),
+      // ✅ Renommé access_token → token pour correspondre au frontend
+      token: this.jwtService.sign(payload),
+      message: 'Connexion réussie !',
     };
   }
 }
